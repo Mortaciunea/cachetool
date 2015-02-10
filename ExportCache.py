@@ -8,9 +8,14 @@ import shiboken
 
 import maya.OpenMayaUI
 
+import referencestable 
+reload(referencestable)
 from referencestable import ReferencesTable
 from cachejobstable import CacheJobsTable
 from exportcachejob import ExportCacheJob
+
+import cachesettings 
+reload(cachesettings)
 from cachesettings import CacheSettingsUI
 import animfilestable 
 reload(animfilestable)
@@ -33,21 +38,12 @@ class CacheToolUI(QtGui.QMainWindow):
 		super(CacheToolUI,self).__init__(parent)
 		self.setObjectName(bdExportCacheWin)
 		
-		
 		self.setWindowTitle('Export Cache Tool')
 		
-		mainLayout = QtGui.QVBoxLayout()
-		
-		
-		okButton = QtGui.QPushButton(self.tr("OK"))
-		cancelButton = QtGui.QPushButton(self.tr("Cancel"))
-		
-		buttonLayout = QtGui.QHBoxLayout()
-		buttonLayout.addStretch(1)
-		buttonLayout.addWidget(okButton)
-		buttonLayout.addWidget(cancelButton)		
+		centralWidget = QtGui.QWidget()
 
-		#self.tabs= QtGui.QTabWidget()
+		mainLayout = QtGui.QVBoxLayout()
+
 		cacheToolTabs = QtGui.QTabWidget()
 		print cacheToolTabs
 		
@@ -60,19 +56,21 @@ class CacheToolUI(QtGui.QMainWindow):
 		self.cacheJobsTable = CacheJobsTable()
 		cacheToolTabs.addTab(self.cacheJobsTable , 'Cache Jobs')
 		
-		#self.tabs.addTab(self.cacheToolTabs,'Cache Tool')
+		
 		mainLayout.addWidget(cacheToolTabs)
-		#mainLayout.addWidget(self.tabs)
-		#self.setCentralWidget( self.tabs )
-		self.setLayout(mainLayout)
+		
+		centralWidget.setLayout(mainLayout)
+		self.setCentralWidget(centralWidget)
+
 		self.menuBar = self.menuBar()
 		self.cacheMenu = self.menuBar.addMenu('Tool')
 		self.cacheMenu.addAction('Settings').triggered.connect(self.setCacheToolVars)
 		self.show()
+		self.resize(800,600)
 	
 	def setCacheToolVars(self):
 		settings = CacheSettingsUI()
-		settings.setFixedSize(300,  80)
+		settings.setFixedSize(600,  300)
 		settings.exec_()
 
 def main():
