@@ -67,7 +67,10 @@ class CacheToolUI(QtGui.QMainWindow):
 		self.cacheMenu = self.menuBar.addMenu('Tool')
 		self.cacheMenu.addAction('Settings').triggered.connect(self.setCacheToolVars)
 		self.show()
+		
 		self.resize(900,600)
+		if os.name == 'posix':
+			self.resize(1150,600)
 	
 	def setCacheToolVars(self):
 		settings = CacheSettingsUI()

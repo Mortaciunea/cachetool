@@ -6,7 +6,7 @@ import PySide.QtGui as QtGui
 
 from difflib import Differ
 
-jobsTableTitles = ['Job Name','Camera','Animation file path']
+jobsTableTitles = ['Job Name','Job file path']
 
 
 
@@ -32,6 +32,8 @@ class CacheJobsTable(QtGui.QWidget):
         self.exportReferences = []
 
         self.userCameras = []
+        self.jobFile = []
+        self.logFilesPath = self.getLogFilesPath()
 
     def createJobsTable(self):
         colNum = len(jobsTableTitles)
@@ -57,23 +59,26 @@ class CacheJobsTable(QtGui.QWidget):
         for i in range(rowCount):
             cacheStatus = animTable.item(i,1).text()
             if cacheStatus == 'Yes':
-                self.exportCache(animTable.item(i,0).text())
+                logFile = self.createLogFile(animTable.item(i,0).text())
+                log = open(logFile,'w')
+                self.exportCache(animTable.item(i,0).text(),log)
+                log.close()
 
-    def exportCache(self,animFile):
+    def exportCache(self,animFile,log):
         if os.path.isfile(animFile):
             pm.openFile(animFile,f=1)
             self.exportReferences = self.getSceneReferences()
             cacheFolder = self.createShotCacheFolder(animFile)
             for reference in self.exportReferences :
                 print 'Export Alembuc for reference %s'%reference
-                self.exportAlembic(reference[1],cacheFolder)
+                self.exportAlembic(reference[1],cacheFolder,log)
 
-            self.exportCameras(cacheFolder)
-            self.saveRenderFile(animFile,cacheFolder)
+            self.exportCameras(cacheFolder,log)
+            self.saveRenderFile(animFile,cacheFolder,log)
 
 
 
-    def exportAlembic(self,namespace,cacheFolder):
+    def exportAlembic(self,namespace,cacheFolder,log):
         print 'actually exporting'
         geoSuffix = pm.optionVar.get('geoString','REN')
 
@@ -81,13 +86,12 @@ class CacheJobsTable(QtGui.QWidget):
 
         startTime = pm.playbackOptions(query=True, minTime=True)
         endTime = pm.playbackOptions(query=True, maxTime=True)
-        logFile = os.path.join(cacheFolder,'log.txt')
-        f = open(logFile,'w')
-        f.writelines('Exporting %s, path %s'%(namespace,cacheFolder) )
+
+        log.writelines('Exporting %s, path %s \n'%(namespace,cacheFolder) )
         if meshes:
             pm.select(meshes)
             
-            f.writelines('Exporting meshes %s'%( ', '.join(meshes)))
+            log.writelines('Exporting meshes %s \n'%( ', '.join(meshes)))
             fileName = namespace + '.abc'
 
             fileName = os.path.join(cacheFolder,fileName).replace('\\','/')
@@ -110,9 +114,9 @@ class CacheJobsTable(QtGui.QWidget):
                 pm.mel.eval(jobstring)
             except:
                 pm.warning('Could not export %s rig'%namespace)
-        f.close()
 
-    def exportCameras(self,cacheFolder):
+
+    def exportCameras(self,cacheFolder,log):
         perspCameras = pm.listCameras(o=0,p=1)
         userCameras = []
         for cam in perspCameras:
@@ -144,7 +148,7 @@ class CacheJobsTable(QtGui.QWidget):
             except:
                 pm.warning('Could not export %s cam'%cam) 
 
-    def saveRenderFile(self,forAnim,cacheFolder):
+    def saveRenderFile(self,forAnim,cacheFolder,log):
         lightingFolder = pm.optionVar.get('lightingFolderString','')
         lightingString = pm.optionVar.get('lightingString','')
         animString = pm.optionVar.get('animString','')
@@ -239,7 +243,7 @@ class CacheJobsTable(QtGui.QWidget):
         cacheFolder = os.path.join(workspace,'cache')
         if not os.path.isdir(cacheFolder):
             os.mkdir(cacheFolder)
-        cacheFolder = os.path.join(workspace,'alembic')
+        cacheFolder = os.path.join(cacheFolder,'alembic')
         if not os.path.isdir(cacheFolder):
             os.mkdir(cacheFolder)
         return os.path.abspath(cacheFolder)
@@ -297,3 +301,26 @@ class CacheJobsTable(QtGui.QWidget):
             shadeFile =  referencesTable.item(items[0].row(),1).text()
 
         return shadeFile
+    
+    def getLogFilesPath(self):
+        toolFolder = 'cachetool'
+        workspace = pm.workspace.path
+        toolFolder = os.path.join(workspace,toolFolder)
+        if not os.path.isdir(toolFolder):
+            os.mkdir(toolFolder)
+        logsFolder = os.path.join(toolFolder,'logs')
+        if not os.path.isdir(logsFolder):
+            os.mkdir(logsFolder)
+        return logsFolder
+    
+    def createLogFile(self,anim):
+        print '____CREATING LOG_____'
+        print anim
+        path,animfile = os.path.split(anim)
+        print animfile
+        animfile,ext = os.path.splitext(animfile)
+        print animfile
+        print self.logFilesPath
+        logfile = os.path.join(self.logFilesPath, (animfile + '.txt'))
+        print logfile
+        return logfile
