@@ -86,7 +86,7 @@ class AnimationFilesTable(QtGui.QWidget):
         return table
 
     def getFinalAnimations(self):
-        workspace = pm.workspace.name
+        workspace = pm.workspace.path
 
         animSuffix = pm.optionVar.get('animString','ANIM')
         animFolderString = pm.optionVar.get('animFolderString','Path to the animations')
@@ -115,7 +115,7 @@ class AnimationFilesTable(QtGui.QWidget):
             i+=1
 
         self.animFilesTable.resizeColumnsToContents()
-        self.animFilesTable.setSortingEnabled(1)
+        #self.animFilesTable.setSortingEnabled(1)
 
 
     def selectAll(self):
@@ -128,7 +128,6 @@ class AnimationFilesTable(QtGui.QWidget):
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.finalAnimationFiles[self.animFilesTable.item(i,0).text()]='Yes'
             
-        print self.finalAnimationFiles
 
 
     def selectNone(self):
@@ -140,7 +139,6 @@ class AnimationFilesTable(QtGui.QWidget):
             self.animFilesTable.setItem(i,1,item) 
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.finalAnimationFiles[self.animFilesTable.item(i,0).text()]='No'
-        print self.finalAnimationFiles
 
     def selectInvert(self):
         rowCount = self.animFilesTable.rowCount()
@@ -160,29 +158,30 @@ class AnimationFilesTable(QtGui.QWidget):
                 self.animFilesTable.setItem(i,1,item)
                 item.setTextAlignment(QtCore.Qt.AlignCenter)
                 self.finalAnimationFiles[self.animFilesTable.item(i,0).text()]='Yes'
-        print self.finalAnimationFiles
 
     def toggleExportStatus(self, tableWidgetItem ):
-        row = tableWidgetItem.row()
-        currentState = self.animFilesTable.item(row,1).text()
-        if currentState == 'Yes':
-            item = QtGui.QTableWidgetItem('No')
-            item.setFlags(~QtCore.Qt.ItemIsEditable)
-            item.setBackground(QtGui.QColor(180,0,0))
-            self.animFilesTable.setItem(row,1,item)
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.finalAnimationFiles[self.animFilesTable.item(row,0).text()]='No'
-            
-        elif currentState == 'No':
-            item = QtGui.QTableWidgetItem('Yes')
-            item.setFlags(~QtCore.Qt.ItemIsEditable)
-            item.setBackground(QtGui.QColor(0,180,0))
-            self.animFilesTable.setItem(row,1,item)
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.finalAnimationFiles[self.animFilesTable.item(row,0).text()]='Yes'
+        #self.animFilesTable.setSortingEnabled(0)
+        column =  tableWidgetItem.column()
+        if column == 1:
+            row = tableWidgetItem.row()
+            currentState = self.animFilesTable.item(row,1).text()
+            if currentState == 'Yes':
+                item = QtGui.QTableWidgetItem('No')
+                item.setFlags(~QtCore.Qt.ItemIsEditable)
+                item.setBackground(QtGui.QColor(180,0,0))
+                self.animFilesTable.setItem(row,1,item)
+                item.setTextAlignment(QtCore.Qt.AlignCenter)
+                self.finalAnimationFiles[self.animFilesTable.item(row,0).text()]='No'
+                
+            elif currentState == 'No':
+                item = QtGui.QTableWidgetItem('Yes')
+                item.setFlags(~QtCore.Qt.ItemIsEditable)
+                item.setBackground(QtGui.QColor(0,180,0))
+                self.animFilesTable.setItem(row,1,item)
+                item.setTextAlignment(QtCore.Qt.AlignCenter)
+                self.finalAnimationFiles[self.animFilesTable.item(row,0).text()]='Yes'
         
-        print self.finalAnimationFiles
-            
+        #self.animFilesTable.setSortingEnabled(1)
     
     def refineAnimList(self):
         print self.refineEdit.text()
@@ -194,7 +193,7 @@ class AnimationFilesTable(QtGui.QWidget):
         refineList = []
         
         animFiles = self.finalAnimationFiles.keys()
-        print animFiles
+
         for pat in patterns:
             for anim in animFiles:
                 if pat in anim:
@@ -202,26 +201,51 @@ class AnimationFilesTable(QtGui.QWidget):
                     
         self.animFilesTable.clearContents()
         self.animFilesTable.setRowCount(len(refineList))
+        #self.animFilesTable.setSortingEnabled(0)
         for i in range(len(refineList)):
             item = QtGui.QTableWidgetItem(str(refineList[i]))
             item.setFlags(~QtCore.Qt.ItemIsEditable)
             self.animFilesTable.setItem(i, 0, item)
 
-            item = QtGui.QTableWidgetItem(self.finalAnimationFiles[refineList[i]])
-            item.setFlags(~QtCore.Qt.ItemIsEditable)
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.animFilesTable.setItem(i, 1, item)
+            currentState = self.finalAnimationFiles[refineList[i]]
+            if currentState == 'No':
+                item = QtGui.QTableWidgetItem('No')
+                item.setFlags(~QtCore.Qt.ItemIsEditable)
+                item.setBackground(QtGui.QColor(180,0,0))
+                self.animFilesTable.setItem(i,1,item)
+                item.setTextAlignment(QtCore.Qt.AlignCenter)
+            elif currentState == 'Yes':
+                item = QtGui.QTableWidgetItem('Yes')
+                item.setFlags(~QtCore.Qt.ItemIsEditable)
+                item.setBackground(QtGui.QColor(0,180,0))
+                self.animFilesTable.setItem(i,1,item)
+                item.setTextAlignment(QtCore.Qt.AlignCenter)
+        #self.animFilesTable.setSortingEnabled(1)
         
     def restoreAnimList(self):
-        animFiles = self.finalAnimationFiles.keys()
-        self.animFilesTable.setRowCount(len(animFiles))
+        self.animFilesTable.clearContents()
+
         self.refineEdit.setText('')
-        for i in range(len(animFiles)):
-            item = QtGui.QTableWidgetItem(str(animFiles[i]))
+        self.animFilesTable.setSortingEnabled(0)
+        self.animFilesTable.setRowCount(len(self.finalAnimationFiles))
+        i=0
+        for k,v in self.finalAnimationFiles.iteritems():
+            item = QtGui.QTableWidgetItem(k)
             item.setFlags(~QtCore.Qt.ItemIsEditable)
             self.animFilesTable.setItem(i, 0, item)
 
-            item = QtGui.QTableWidgetItem(self.finalAnimationFiles[animFiles[i]])
-            item.setFlags(~QtCore.Qt.ItemIsEditable)
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.animFilesTable.setItem(i, 1, item)            
+            currentState = v
+            if currentState == 'No':
+                item = QtGui.QTableWidgetItem('No')
+                item.setFlags(~QtCore.Qt.ItemIsEditable)
+                item.setBackground(QtGui.QColor(180,0,0))
+                self.animFilesTable.setItem(i,1,item)
+                item.setTextAlignment(QtCore.Qt.AlignCenter)
+            elif currentState == 'Yes':
+                item = QtGui.QTableWidgetItem('Yes')
+                item.setFlags(~QtCore.Qt.ItemIsEditable)
+                item.setBackground(QtGui.QColor(0,180,0))
+                self.animFilesTable.setItem(i,1,item)
+                item.setTextAlignment(QtCore.Qt.AlignCenter)
+            i+=1
+        #self.animFilesTable.setSortingEnabled(1)

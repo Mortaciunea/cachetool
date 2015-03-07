@@ -11,6 +11,9 @@ import maya.OpenMayaUI
 import referencestable 
 reload(referencestable)
 from referencestable import ReferencesTable
+
+import cachejobstable 
+reload(cachejobstable)
 from cachejobstable import CacheJobsTable
 from exportcachejob import ExportCacheJob
 
@@ -45,7 +48,6 @@ class CacheToolUI(QtGui.QMainWindow):
 		mainLayout = QtGui.QVBoxLayout()
 
 		cacheToolTabs = QtGui.QTabWidget()
-		print cacheToolTabs
 		
 		self.animationsTable = AnimationFilesTable()
 		cacheToolTabs.addTab(self.animationsTable , 'Animation Files')
@@ -58,21 +60,24 @@ class CacheToolUI(QtGui.QMainWindow):
 		
 		
 		mainLayout.addWidget(cacheToolTabs)
-		
 		centralWidget.setLayout(mainLayout)
 		self.setCentralWidget(centralWidget)
-
+		
 		self.menuBar = self.menuBar()
 		self.cacheMenu = self.menuBar.addMenu('Tool')
 		self.cacheMenu.addAction('Settings').triggered.connect(self.setCacheToolVars)
 		self.show()
-		self.resize(800,600)
+		self.resize(900,600)
 	
 	def setCacheToolVars(self):
 		settings = CacheSettingsUI()
-		settings.setFixedSize(600,  300)
+		settings.setFixedSize(600,  400)
 		settings.exec_()
+		self.referencesTable.populateReferences(0)
+	
 
+			
+	
 def main():
 	if pm.window( bdExportCacheWin, exists = True, q = True ):
 		pm.deleteUI( bdExportCacheWin)

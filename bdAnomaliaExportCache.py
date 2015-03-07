@@ -417,7 +417,7 @@ class bdExportCache( exportCache_base, exportCache_form ):
 					continue
 				pm.delete(node)			
 			try:
-				pm.saveAs(os.path.normpath(renderFile),force=True)
+				pm.saveFile(os.path.normpath(renderFile),force=True)
 			except:
 				pm.warning('Cant save maya ascii')
 				
